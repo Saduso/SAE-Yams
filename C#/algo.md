@@ -1,16 +1,15 @@
-Fichier permet d'ecrire l'algo des programme
+### Fichier permet d'ecrire l'algo des programme
 
-Algo : LanceDes<br>
-idée : Genere aleatoirement un nombre entre 1 et 6 compris<br>
-Entrée : rien<br>
-Sortie : Entier nb<br>
-Debut<br>
+<b>Algo :</b> LanceDes<br>
+<b>idée :</b> Genere aleatoirement un nombre entre 1 et 6 compris<br>
+<b>Entrée :</b> rien<br>
+<b>Sortie :</b> Entier nb<br>
+<b>Debut</b><br>
 Entier nb<br>
 nb = nombre entre 1 et 6 compris<br>
 retourner nb<br>
-Fin<br>
+<b>Fin</b>
 
-Structure : Des<br>
-Entier dé : numeros du dé (1-5)<br>
-Entier val : valeur du dé (générer par LanceDes)<br>
-Boolean Garder : false (par defaut)<br>
+<b>Structure :</b> Dé<br>
+<b>Entier Val :</b> valeur du dé (générer par LanceDes)<br>
+<b>Boolean Garder :</b> false (par defaut)<br>

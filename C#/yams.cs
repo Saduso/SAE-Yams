@@ -3,6 +3,7 @@ public class yams
     public static void Main () {
         
     }
+
     /*
         Genere un nombre aleatoire entre 1 et 6 compris
     */
@@ -16,25 +17,30 @@ public class yams
 
     struct Dé
     {
-        private int _dé;
+        // Structure d'un dé.
         private int _val;
         private bool _garder;
 
-        public int Dé
-        {
-            get => _dé;
-            set => value % 5;
-        }
+        /*
+         * Val:
+         * get: Récupère la valeure du dé.
+         * set: La valeure du dé doit être compri entre 0 et 6.
+         */
         public int Val
         {
             get => _val;
             set => value % 6;
         }
 
+        /*
+         * Val:
+         * get: Récupère si le dé est gardé par l'utilisateur.
+         * set: Modifie la valeur du dé.
+         */
         public bool Garder
         {
             get => _garder;
-            set => value || _garder;
+            set => value;
         }
     }
 }
