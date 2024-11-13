@@ -1,0 +1,100 @@
+html {
+    background-color: #B0E0E6;
+    /* Couleur de font */
+}
+
+header {
+    display: flex;
+    /* creation flex box pour bouger le titre et le json*/
+    justify-content: center;
+    /*center*/
+    flex-direction: row;
+    align-items: center;
+    /* Centre verticalement */
+}
+
+h1 {
+    border-bottom: 10px double #5966AA;
+    /*souligne*/
+    color: #5966AA;
+    /*couleur cool*/
+    font-size: 60px;
+    /*taille titre*/
+    font-style: italic;
+    /*j'hesite a garder*/
+    order: 2;
+}
+
+aside.premier {
+    order: 3;
+}
+
+aside.deuxieme {
+    order: 1;
+}
+
+section {
+    display: flex;
+    justify-content: space-between;
+    /* Écarte les éléments dans le conteneur */
+    flex-direction: row;
+    /* Aligne horizontal les éléments */
+    height: 100vh;
+    /*pas supprimable -\('-')/- */
+    /* Prend toute la hauteur de la fenêtre */
+    margin: 0px;
+}
+
+aside {
+    display: flex;
+    /* Active Flexbox pour l'aside pour maudifier leurs elements*/
+    align-items: center;
+    /* Centre l'image verticalement (pas obliger)*/
+    justify-content: center;
+    /* Centre l'image horizontalement*/
+}
+
+
+aside.gauche {
+    background-color: white;
+    border-radius: 50px;
+    width: 10%;
+    height: 100%;
+    /* S'assure que le contenu occupe toute la hauteur disponible */
+    order: 1;
+    /* s'affiche en premier */
+}
+
+
+aside.droite {
+    background-color: white;
+    border-radius: 50px;
+    width: 10%;
+    height: 100%;
+    /* S'assure que le contenu occupe toute la hauteur disponible */
+    margin-right: 0px;
+    order: 3;
+    /* s'affiche en dernier */
+
+}
+
+
+main {
+    background-color: white;
+    border-radius: 50px;
+    width: 70%;
+    height: 100%;
+    /* S'assure que le contenu occupe toute la hauteur disponible */
+    order: 2;
+    /* s'affiche en deuxieme */
+}
+
+footer {
+    font-size: 20px;
+    font-style: normal;
+    font-weight: normal;
+    font-family: cursive;
+    color: #467586;
+    display: flex;
+    justify-content: center;
+}
