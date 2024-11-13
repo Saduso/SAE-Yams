@@ -89,6 +89,16 @@ main {
     /* s'affiche en deuxieme */
 }
 
+section.score {
+    display: flex;
+    justify-content: center;
+    background-color: white;
+    width: 100%;
+    border-radius: 50px;
+    height: 20%;
+    margin-top: 20px;
+}
+
 footer {
     font-size: 20px;
     font-style: normal;
