@@ -45,7 +45,7 @@ section {
     margin: 0px;
 }
 
-aside {
+nav {
     display: flex;
     /* Active Flexbox pour l'aside pour maudifier leurs elements*/
     align-items: center;
