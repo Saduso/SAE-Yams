@@ -2,45 +2,47 @@
 
 public class Yams
 {
-    private static Dictionary<string, int?>? _challenges;
+    private static readonly Dictionary<string, string> Raccourcis = new()
+    {
+        { "Un", "un" }, { "Deux", "de" }, { "Trois", "tr" }, { "Quatre", "qt" }, { "Cinq", "cq" }, { "Six", "si" },
+        { "Brelan", "br" }, { "Carré", "cr" }, { "Full", "fl" }, { "Petite Suite", "ps" }, { "Grande Suite", "gs" },
+        { "Yams", "ym" },
+        { "Chance", "ch" },
+    };
 
     public static void Main()
     {
-        _challenges = new Dictionary<string, int?>
+        var challenges = new Dictionary<string, int?>
         {
-            { "Un", null },
-            { "Deux", null },
-            { "Trois", null },
-            { "Quatre", null },
-            { "Cinq", null },
-            { "Six", null },
-
-            { "Brelan", null },
-            { "Carré", null },
-            { "House", null },
-            { "Petite Suite", null },
-            { "Grande Suite", null },
+            { "Un", null }, { "Deux", null }, { "Trois", null }, { "Quatre", null }, { "Cinq", null }, { "Six", null },
+            { "Brelan", null }, { "Carré", null }, { "Full", null }, { "Petite Suite", null }, { "Grande Suite", null },
             { "Yams", null },
-
             { "Chance", null },
         };
 
         var dés = new Dé[5];
 
-        Tour(ref _challenges, ref dés);
+        Tour(ref challenges, ref dés);
     }
 
     private static void Tour(ref Dictionary<string, int?> challenges, ref Dé[] dés)
     {
-        LancerDes(ref dés);
-        AfficherChallenges(challenges, dés);
+        for (var i = 0; i < 3; i++)
+        {
+            Console.Write((dés[0].Garder ? "--" : 1) + "\t" + (dés[1].Garder ? "--" : 2) + "\t" + (dés[2].Garder ? "--" : 3) + "\t" + (dés[3].Garder ? "--" : 4) + "\t" + (dés[4].Garder ? "--" : 5) + "\n" +
+                          "INDICE POUR CONSERVER UN DÉ\n");
+            LancerDes(ref dés);
+            AfficherChallenges(challenges, dés);
+            Console.Write("\nVotre choix : ");
+            Console.ReadLine();
+        }
     }
 
     private static void LancerDes(ref Dé[] dés)
     {
         for (var index = 0; index < dés.Length; index++)
         {
-            dés[index].Val = new Random().Next(1, 7);
+            if (!dés[index].Garder) dés[index].Val = new Random().Next(1, 7);
             Console.Write(dés[index].Val + "\t");
         }
         Console.Write("\n");
@@ -53,7 +55,9 @@ public class Yams
         {
             if (i % 2 == 0) Console.Write("\n"); // Affiche les challenges 2 par lignes
             if (i is 6 or 12) Console.Write("\n"); // Sépare les types de challenges
-            var str = $"--) {challenge.Key}: " + (challenge.Value ?? Challenge.Challenges[i](dés!));  // Affichage
+            var challengeResult = Challenge.Challenges[i](dés!);
+            var challengesRacc = challengeResult == 0 || challenge.Value is not null ? "--" : Raccourcis[challenge.Key];
+            var str = $"{challengesRacc}) {challenge.Key}: " + (challenge.Value ?? challengeResult);  // Affichage
             Console.Write(str + "\t");
             if (str.Length / 19 == 0) Console.Write("\t"); // Aligne moins si le premier challenge est trop gros
             // if (str.Length / 4 == 1) Console.Write("\t"); // Aligne plus si le premier challenge est trop petit
