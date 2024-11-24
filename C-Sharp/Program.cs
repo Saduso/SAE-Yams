@@ -25,37 +25,76 @@ public class Yams
         Tour(ref challenges, ref dés);
     }
 
-    private static void Tour(ref Dictionary<string, int?> challenges, ref Dé[] dés)
+    private static void Tour(ref Dictionary<string, int?> challenges, ref Dé[] des)
     {
         for (var i = 0; i < 3; i++)
         {
-            Console.Write((dés[0].Garder ? "--" : 1) + "\t" + (dés[1].Garder ? "--" : 2) + "\t" + (dés[2].Garder ? "--" : 3) + "\t" + (dés[3].Garder ? "--" : 4) + "\t" + (dés[4].Garder ? "--" : 5) + "\n" +
+            Console.Write((des[0].Garder ? "-" : 1) + "\t" + (des[1].Garder ? "-" : 2) + "\t" + (des[2].Garder ? "-" : 3) + "\t" + (des[3].Garder ? "-" : 4) + "\t" + (des[4].Garder ? "-" : 5) + "\n" +
                           "INDICE POUR CONSERVER UN DÉ\n");
-            LancerDes(ref dés);
-            AfficherChallenges(challenges, dés);
+            LancerDes(ref des);
+            AfficherDes(des);
+            Console.WriteLine("rl) Relance les dés");
+            AfficherChallenges(challenges, des);
             Console.Write("\nVotre choix : ");
-            Console.ReadLine();
+            var raccourcis = RaccourcisValides(challenges, des);
+            var res = "1";
+            var truc = new string[5]; // Liste permet de comparer une chaîne de character potentiellement nombre à des nombre entre 1 et 5.
+            for (var j = 0; j < 5; j++) truc[j] = j + 1 + "";
+            while (int.TryParse(res, out _) && truc[int.Parse(res!) - 1] == res) { // Tant que le dernier nombre est entre 1 et 5 (permet de garder plusieurs dés).
+                res = Console.ReadLine();
+                if (!int.TryParse(res, out _)) continue;
+                if (truc[int.Parse(res!) - 1] != res) continue;
+                des[int.Parse(res) - 1].Garder = !des[int.Parse(res) - 1].Garder;
+                Console.Write("\n" + (des[0].Garder ? "-" : 1) + "\t" + (des[1].Garder ? "-" : 2) + "\t" +
+                              (des[2].Garder ? "-" : 3) + "\t" + (des[3].Garder ? "-" : 4) + "\t" +
+                              (des[4].Garder ? "-" : 5) + "\n" +
+                              "INDICE POUR CONSERVER UN DÉ\n");
+                AfficherDes(des);
+                Console.WriteLine("rl) Relance les dés");
+                Console.Write("\nVotre choix : ");
+            }
+            if (res == "rl") continue;
+            if (raccourcis.ContainsKey(res!))
+            {
+                challenges[raccourcis[res!]] = Challenge.Challenges[challenges.Keys.ToList().IndexOf(raccourcis[res!])](des);
+            }
         }
     }
 
-    private static void LancerDes(ref Dé[] dés)
+    private static Dictionary<string, string> RaccourcisValides(Dictionary<string, int?> challenges, Dé[] des)
     {
-        for (var index = 0; index < dés.Length; index++)
+        var correctChallenge = new Dictionary<string, string>();
+        var i = 0;
+        foreach (var challenge in challenges)
         {
-            if (!dés[index].Garder) dés[index].Val = new Random().Next(1, 7);
-            Console.Write(dés[index].Val + "\t");
+            var challengeResult = Challenge.Challenges[i](des);
+            var challengesRacc = challengeResult == 0 || challenge.Value is not null;
+            if (challengesRacc) correctChallenge[Raccourcis[challenge.Key]] = challenge.Key;
+            i++;
         }
+        return correctChallenge;
+    }
+
+    private static void LancerDes(ref Dé[] des)
+    {
+        for (var index = 0; index < des.Length; index++)
+            if (!des[index].Garder) des[index].Val = new Random().Next(1, 7);
+    }
+
+    private static void AfficherDes(Dé[] des)
+    {
+        foreach (var de in des) Console.Write(de.Val + "\t");
         Console.Write("\n");
     }
 
-    private static void AfficherChallenges(Dictionary<string, int?> challenges, Dé[]? dés)
+    private static void AfficherChallenges(Dictionary<string, int?> challenges, Dé[]? des)
     {
         var i = 0; // Permet de gérer l'affichage des challenges
         foreach (var challenge in challenges)
         {
             if (i % 2 == 0) Console.Write("\n"); // Affiche les challenges 2 par lignes
             if (i is 6 or 12) Console.Write("\n"); // Sépare les types de challenges
-            var challengeResult = Challenge.Challenges[i](dés!);
+            var challengeResult = Challenge.Challenges[i](des!);
             var challengesRacc = challengeResult == 0 || challenge.Value is not null ? "--" : Raccourcis[challenge.Key];
             var str = $"{challengesRacc}) {challenge.Key}: " + (challenge.Value ?? challengeResult);  // Affichage
             Console.Write(str + "\t");
@@ -82,7 +121,7 @@ public class Yams
         public int Val
         {
             get => _val;
-            set => _val = value != 0 ? value % 7 : 1;
+            set => _val = value;
         }
 
         /*
@@ -113,47 +152,47 @@ public static class Challenge // Contient le test des challenges
     private static int Cinq(Yams.Dé[] dés) => dés.Where(dé => dé.Val == 5).Sum(dé => dé.Val);
     private static int Six(Yams.Dé[] dés) => dés.Where(dé => dé.Val == 6).Sum(dé => dé.Val);
 
-    private static int Brelan(Yams.Dé[] dés)
+    private static int Brelan(Yams.Dé[] des)
     {
         var valeurs = new Dictionary<int, int> { {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0} };
-        foreach (var dé in dés)
+        foreach (var dé in des)
         {
             valeurs[dé.Val] += 1;
-            if (valeurs[dé.Val] >= 3) return Chance(dés);
+            if (valeurs[dé.Val] >= 3) return Chance(des);
         }
         return 0;
     }
-    private static int Carré(Yams.Dé[] dés)
+    private static int Carré(Yams.Dé[] des)
     {
         var valeurs = new Dictionary<int, int> { {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0} };
-        foreach (var dé in dés)
+        foreach (var dé in des)
         {
             valeurs[dé.Val] += 1;
-            if (valeurs[dé.Val] >= 4) return Chance(dés);
+            if (valeurs[dé.Val] >= 4) return Chance(des);
         }
         return 0;
     }
-    private static int Full(Yams.Dé[] dés)
+    private static int Full(Yams.Dé[] des)
     {
         var valeurs = new Dictionary<int, int> { {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0} };
-        foreach (var dé in dés) valeurs[dé.Val] += 1;
-        return valeurs.Any(valeur => valeur.Value == 2 && Brelan(dés) != 0) ? 25 : 0;
+        foreach (var dé in des) valeurs[dé.Val] += 1;
+        return valeurs.Any(valeur => valeur.Value == 2 && Brelan(des) != 0) ? 25 : 0;
     }
     private static int Petite(Yams.Dé[] dés)
     {
-        var nDés = dés;
-        Array.Sort(nDés);
-        var mi = nDés[0];
+        var nDes = dés.ToArray();
+        Array.Sort(nDes);
+        var mi = nDes[0];
         var ma = 3;
         var i = 0;
         var u = 0;
-        foreach (var dé in nDés)
+        foreach (var de in nDes)
         {
-            if (dé.Val == mi.Val + 1)
+            if (de.Val == mi.Val + 1)
             {
                 i++;
-                mi = dé;
-            } else if (dé.Val == nDés[^1].Val - ma) {
+                mi = de;
+            } else if (de.Val == nDes[^1].Val - ma) {
                 u++;
                 ma--;
             }
@@ -162,15 +201,15 @@ public static class Challenge // Contient le test des challenges
     }
     private static int Grande(Yams.Dé[] dés)
     {
-        var nDés = dés;
-        Array.Sort(nDés);
-        var mi = nDés[0];
+        var nDes = dés.ToArray();
+        Array.Sort(nDes);
+        var mi = nDes[0];
         var i = 0;
-        foreach (var dé in nDés)
-            if (dé.Val == mi.Val + 1)
+        foreach (var de in nDes)
+            if (de.Val == mi.Val + 1)
             {
                 i++;
-                mi = dé;
+                mi = de;
             }
         return i >= 4 ? 40 : 0;
     }
