@@ -16,23 +16,34 @@ public class Yams
         for (var i = 0; i < 2; i++)
         {
             Console.Write($"\nEntrez le nom du joueur {i+1} : ");
-            joueurs[i] = new Joueur(Console.ReadLine() ?? $"Joueur {i+1}");
+            var c = Console.ReadLine();
+            joueurs[i] = new Joueur(c is null or "" ? $"Joueur {i+1}" : c);
         }
 
-        Tour(ref joueurs[0]);
+        for (var i = 0; i < 13; i++)
+        {
+            Console.WriteLine($"Tour #{i+1}");
+            for (var index = 0; index < joueurs.Length; index++)
+            {
+                Tour(ref joueurs[index]);
+                Console.Clear();
+            }
+        }
     }
 
     private static void Tour(ref Joueur joueur)
     {
         Console.WriteLine($"Tour de {joueur.Nom}");
         var des = new Dé[5];
+        var peutLancer = true;
         for (var i = 0; i < 3; i++)
         {
             Console.Write((des[0].Garder ? "-" : 1) + "\t" + (des[1].Garder ? "-" : 2) + "\t" + (des[2].Garder ? "-" : 3) + "\t" + (des[3].Garder ? "-" : 4) + "\t" + (des[4].Garder ? "-" : 5) + "\n" +
                           "INDICE POUR CONSERVER UN DÉ\n");
-            LancerDes(ref des);
+            if (peutLancer) LancerDes(ref des);
+            else peutLancer = true;
             AfficherDes(des);
-            Console.WriteLine("rl) Relance les dés");
+            Console.WriteLine((i != 2 ? "rl" : "--") + ") Relance les dés");
             AfficherChallenges(joueur.Challenges, des);
             Console.Write("\nVotre choix : ");
             var raccourcis = RaccourcisValides(joueur.Challenges, des);
@@ -44,24 +55,33 @@ public class Yams
                 if (!int.TryParse(res, out _)) continue;
                 if (truc[int.Parse(res!) - 1] != res) continue;
                 des[int.Parse(res) - 1].Garder = !des[int.Parse(res) - 1].Garder;
-                Console.Write("\n" + (des[0].Garder ? "-" : 1) + "\t" + (des[1].Garder ? "-" : 2) + "\t" +
-                              (des[2].Garder ? "-" : 3) + "\t" + (des[3].Garder ? "-" : 4) + "\t" +
-                              (des[4].Garder ? "-" : 5) + "\n" +
-                              "INDICE POUR CONSERVER UN DÉ\n");
+                Console.Write("\n" + (des[0].Garder ? "-" : 1) + "\t" + (des[1].Garder ? "-" : 2) + "\t" + (des[2].Garder ? "-" : 3) + "\t" + (des[3].Garder ? "-" : 4) + "\t" + (des[4].Garder ? "-" : 5) + "\n" + "INDICE POUR CONSERVER UN DÉ\n");
                 AfficherDes(des);
                 Console.WriteLine("rl) Relance les dés");
                 Console.Write("\nVotre choix : ");
             }
-            if (res == "rl") continue;
+            if (res == "rl")
+            {
+                if (i == 2)
+                {
+                    i--;
+                    peutLancer = false;
+                    Console.WriteLine("Vous devez jouer un challenge.");
+                }
+                continue;
+            }
             if (raccourcis.ContainsKey(res!))
             {
+                Console.WriteLine("Le fonction truc " + joueur.Challenges.Keys.ToList().IndexOf(raccourcis[res!]));
+                Console.WriteLine("Total ajouté: " + Challenge.Challenges[joueur.Challenges.Keys.ToList().IndexOf(raccourcis[res!])](des));
                 joueur.Challenges[raccourcis[res!]] =
                     Challenge.Challenges[joueur.Challenges.Keys.ToList().IndexOf(raccourcis[res!])](des);
                 return;
             }
             // else
             Console.WriteLine("Ce challenge n'est pas disponible");
-            i++;
+            peutLancer = false;
+            i--;
         }
     }
 
@@ -72,7 +92,7 @@ public class Yams
         foreach (var challenge in challenges)
         {
             var challengeResult = Challenge.Challenges[i](des);
-            var challengesRacc = challengeResult == 0 || challenge.Value is not null;
+            var challengesRacc = challenge.Value is not null;
             if (!challengesRacc) correctChallenge[Raccourcis[challenge.Key]] = challenge.Key;
             i++;
         }
@@ -94,12 +114,14 @@ public class Yams
     private static void AfficherChallenges(Dictionary<string, int?> challenges, Dé[]? des)
     {
         var i = 0; // Permet de gérer l'affichage des challenges
+        var bonus = challenges.ToList().Where((_, j) => j < 6).Sum(j => j.Value);
+        Console.WriteLine($"{bonus}/63");
         foreach (var challenge in challenges)
         {
             if (i % 2 == 0) Console.Write("\n"); // Affiche les challenges 2 par lignes
             if (i is 6 or 12) Console.Write("\n"); // Sépare les types de challenges
             var challengeResult = Challenge.Challenges[i](des!);
-            var challengesRacc = challengeResult == 0 || challenge.Value is not null ? "--" : Raccourcis[challenge.Key];
+            var challengesRacc = challenge.Value is not null ? "--" : Raccourcis[challenge.Key];
             var str = $"{challengesRacc}) {challenge.Key}: " + (challenge.Value ?? challengeResult);  // Affichage
             Console.Write(str + "\t");
             if (str.Length / 19 == 0) Console.Write("\t"); // Aligne moins si le premier challenge est trop gros
@@ -111,7 +133,7 @@ public class Yams
 
     public struct Joueur(string nom)
     {
-        public string? Nom { get; set; } = nom;
+        public string? Nom { get; set; } = nom == "" ? "Nouveau joueur" : nom;
 
         public Dictionary<string, int?> Challenges { get; set; } = new()
         {
@@ -142,7 +164,7 @@ public class Yams
         }
 
         /*
-         * Val:
+         * Garder:
          * get: Récupère si le dé est gardé par l'utilisateur.
          * set: Modifie la valeur du dé.
          */
