@@ -12,21 +12,20 @@ public class Yams
 
     public static void Main()
     {
-        var challenges = new Dictionary<string, int?>
+        var joueurs = new Joueur[2];
+        for (var i = 0; i < 2; i++)
         {
-            { "Un", null }, { "Deux", null }, { "Trois", null }, { "Quatre", null }, { "Cinq", null }, { "Six", null },
-            { "Brelan", null }, { "Carré", null }, { "Full", null }, { "Petite Suite", null }, { "Grande Suite", null },
-            { "Yams", null },
-            { "Chance", null },
-        };
+            Console.Write($"\nEntrez le nom du joueur {i+1} : ");
+            joueurs[i] = new Joueur(Console.ReadLine() ?? $"Joueur {i+1}");
+        }
 
-        var dés = new Dé[5];
-
-        Tour(ref challenges, ref dés);
+        Tour(ref joueurs[0]);
     }
 
-    private static void Tour(ref Dictionary<string, int?> challenges, ref Dé[] des)
+    private static void Tour(ref Joueur joueur)
     {
+        Console.WriteLine($"Tour de {joueur.Nom}");
+        var des = new Dé[5];
         for (var i = 0; i < 3; i++)
         {
             Console.Write((des[0].Garder ? "-" : 1) + "\t" + (des[1].Garder ? "-" : 2) + "\t" + (des[2].Garder ? "-" : 3) + "\t" + (des[3].Garder ? "-" : 4) + "\t" + (des[4].Garder ? "-" : 5) + "\n" +
@@ -34,9 +33,9 @@ public class Yams
             LancerDes(ref des);
             AfficherDes(des);
             Console.WriteLine("rl) Relance les dés");
-            AfficherChallenges(challenges, des);
+            AfficherChallenges(joueur.Challenges, des);
             Console.Write("\nVotre choix : ");
-            var raccourcis = RaccourcisValides(challenges, des);
+            var raccourcis = RaccourcisValides(joueur.Challenges, des);
             var res = "1";
             var truc = new string[5]; // Liste permet de comparer une chaîne de character potentiellement nombre à des nombre entre 1 et 5.
             for (var j = 0; j < 5; j++) truc[j] = j + 1 + "";
@@ -56,8 +55,13 @@ public class Yams
             if (res == "rl") continue;
             if (raccourcis.ContainsKey(res!))
             {
-                challenges[raccourcis[res!]] = Challenge.Challenges[challenges.Keys.ToList().IndexOf(raccourcis[res!])](des);
+                joueur.Challenges[raccourcis[res!]] =
+                    Challenge.Challenges[joueur.Challenges.Keys.ToList().IndexOf(raccourcis[res!])](des);
+                return;
             }
+            // else
+            Console.WriteLine("Ce challenge n'est pas disponible");
+            i++;
         }
     }
 
@@ -69,7 +73,7 @@ public class Yams
         {
             var challengeResult = Challenge.Challenges[i](des);
             var challengesRacc = challengeResult == 0 || challenge.Value is not null;
-            if (challengesRacc) correctChallenge[Raccourcis[challenge.Key]] = challenge.Key;
+            if (!challengesRacc) correctChallenge[Raccourcis[challenge.Key]] = challenge.Key;
             i++;
         }
         return correctChallenge;
@@ -103,6 +107,19 @@ public class Yams
             i++;
         }
         Console.Write("\n");
+    }
+
+    public struct Joueur(string nom)
+    {
+        public string? Nom { get; set; } = nom;
+
+        public Dictionary<string, int?> Challenges { get; set; } = new()
+        {
+            { "Un", null }, { "Deux", null }, { "Trois", null }, { "Quatre", null }, { "Cinq", null }, { "Six", null },
+            { "Brelan", null }, { "Carré", null }, { "Full", null }, { "Petite Suite", null }, { "Grande Suite", null },
+            { "Yams", null },
+            { "Chance", null },
+        };
     }
 
     public struct Dé(int val = 0) : IComparable<Dé>
