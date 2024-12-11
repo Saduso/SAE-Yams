@@ -14,26 +14,48 @@ public class Yams
 
     public static void Main()
     {
+        const string group = "groupe1-001";
+
+        Json.GenererJson(DateTime.Now.ToString("yyyy-mm-dd"), group);
         var joueurs = new Joueur[2];
         for (var i = 0; i < 2; i++)
         {
             Console.Write($"\nEntrez le nom du joueur {i+1} : ");
             var c = Console.ReadLine();
-            joueurs[i] = new Joueur(c is null or "" ? $"Joueur {i+1}" : c);
+            joueurs[i] = new Joueur(c is null or "" ? $"Joueur {i+1}" : c, i+1);
         }
-
+        Json.EcritureJoueurs(1, joueurs[0].Nom!, 2, joueurs[1].Nom!);
         for (var i = 0; i < 13; i++)
         {
             Console.WriteLine($"Tour #{i+1}");
+            var tours = new KeyValuePair<string, Dé[]>[2];
             for (var index = 0; index < joueurs.Length; index++)
             {
-                Tour(ref joueurs[index]);
+                var tour = Tour(ref joueurs[index]);
+                if (tour is null) return;
+                tours[index] = tour.Value;
                 Console.Clear();
             }
+
+            Json.EcritureTour(i, joueurs[0].Indice,tours[0].Value.Select(k => k.Val).ToArray(), tours[0].Key,
+                Challenge.Challenges[joueurs[0].Challenges.Keys.ToList().IndexOf(tours[0].Key)](tours[0].Value),
+                joueurs[1].Indice, tours[1].Value.Select(k => k.Val).ToArray(), tours[1].Key,
+                Challenge.Challenges[joueurs[1].Challenges.Keys.ToList().IndexOf(tours[1].Key)](tours[1].Value));
         }
+
+        Console.WriteLine($"+-------------YAMS--------------+");
+        foreach (var joueur in joueurs)
+        {
+            Console.WriteLine($"|\t{joueur.Indice}] {joueur.Nom}: {joueur.Challenges.Sum(k => k.Value)}\t\t|");
+        }
+
+        var meilleur = joueurs.OrderBy(k => k.Challenges.Sum(i => i.Value)).Last();
+        Console.WriteLine($"|  ---------------------------  |");
+        Console.WriteLine($"|\tMeilleur: {meilleur.Nom} avec {meilleur.Challenges.Sum(i => i.Value)}\t|");
+        Console.WriteLine($"+-------------------------------+");
     }
 
-    private static void Tour(ref Joueur joueur)
+    private static KeyValuePair<string, Dé[]>? Tour(ref Joueur joueur)
     {
         Console.WriteLine($"Tour de {joueur.Nom}");
         var des = new Dé[5];
@@ -74,17 +96,18 @@ public class Yams
             }
             if (raccourcis.ContainsKey(res!))
             {
-                Console.WriteLine("Le fonction truc " + joueur.Challenges.Keys.ToList().IndexOf(raccourcis[res!]));
-                Console.WriteLine("Total ajouté: " + Challenge.Challenges[joueur.Challenges.Keys.ToList().IndexOf(raccourcis[res!])](des));
-                joueur.Challenges[raccourcis[res!]] =
+                var challengeTotal =
                     Challenge.Challenges[joueur.Challenges.Keys.ToList().IndexOf(raccourcis[res!])](des);
-                return;
+                joueur.Challenges[raccourcis[res!]] = challengeTotal;
+                return new KeyValuePair<string, Dé[]>(raccourcis[res!], des);
             }
             // else
             Console.WriteLine("Ce challenge n'est pas disponible");
             peutLancer = false;
             i--;
         }
+
+        return null;
     }
 
     private static Dictionary<string, string> RaccourcisValides(Dictionary<string, int?> challenges, Dé[] des)
@@ -133,10 +156,10 @@ public class Yams
         Console.Write("\n");
     }
 
-    public struct Joueur(string nom)
+    public struct Joueur(string nom, int indice = 0)
     {
         public string? Nom { get; set; } = nom == "" ? "Nouveau joueur" : nom;
-
+        public int Indice { get; set; } = indice;
         public Dictionary<string, int?> Challenges { get; set; } = new()
         {
             { "Un", null }, { "Deux", null }, { "Trois", null }, { "Quatre", null }, { "Cinq", null }, { "Six", null },
@@ -174,108 +197,6 @@ public class Yams
         {
             get => _garder;
             set => _garder = value;
-        }
-    }
-
-
-    public static void GenererJson(string datePartie, string codePartie)
-    {
-        string filePath = "yams_results.json";
-
-        string jsonContent = $@"{{
-    ""parameters"": {{
-        ""code"": ""{codePartie}"",
-        ""date"": ""{datePartie}""
-    }},
-    ""players"": [],
-    ""rounds"": [],
-    ""final_result"": []
-}}";
-
-        File.WriteAllText(filePath, jsonContent);
-    }
-
-    // Ajoute les joueurs au fichier JSON
-    public static void EcritureJoueurs(int idJoueur1, string pseudo1, int idJoueur2, string pseudo2)
-    {
-        string filePath = "yams_results.json";
-
-        if (File.Exists(filePath))
-        {
-            string existingContent = File.ReadAllText(filePath);
-
-            string playersContent = $@"
-    ""players"": [
-        {{
-            ""id"": {idJoueur1},
-            ""pseudo"": ""{pseudo1}""
-        }},
-        {{
-            ""id"": {idJoueur2},
-            ""pseudo"": ""{pseudo2}""
-        }}
-    ],";
-
-            existingContent = existingContent.Replace(@"""players"": []", playersContent);
-            File.WriteAllText(filePath, existingContent);
-        }
-        else
-        {
-            Console.WriteLine($"Le fichier {filePath} n'existe pas.");
-        }
-    }
-
-    // Ajoute les résultats des deux joueurs pour un round
-    public static void EcritureTour(int roundId, int idJoueur1, int[] des1, string challenge1, int score1,
-        int idJoueur2, int[] des2, string challenge2, int score2)
-    {
-        string filePath = "yams_results.json";
-
-        if (File.Exists(filePath))
-        {
-            string existingContent = File.ReadAllText(filePath);
-
-            // Trouver l'endroit où insérer le nouveau round
-            int roundsIndex = existingContent.LastIndexOf(@"""rounds"": [");
-            if (roundsIndex != -1)
-            {
-                int closingBracketIndex = existingContent.IndexOf("]", roundsIndex);
-
-                string newRound = $@"
-        {{
-            ""id"": {roundId},
-            ""results"": [
-                {{
-                    ""id_player"": {idJoueur1},
-                    ""dice"": [{string.Join(", ", des1)}],
-                    ""challenge"": ""{challenge1}"",
-                    ""score"": {score1}
-                }},
-                {{
-                    ""id_player"": {idJoueur2},
-                    ""dice"": [{string.Join(", ", des2)}],
-                    ""challenge"": ""{challenge2}"",
-                    ""score"": {score2}
-                }}
-            ]
-        }}";
-
-                string updatedContent;
-                if (existingContent.Substring(roundsIndex, closingBracketIndex - roundsIndex + 1).Trim() == @"""rounds"": []")
-                {
-                    updatedContent = existingContent.Replace(@"""rounds"": []", $@"""rounds"": [{newRound}]");
-                }
-                else
-                {
-                    updatedContent = existingContent.Insert(closingBracketIndex, "," + newRound);
-                }
-
-                File.WriteAllText(filePath, updatedContent);
-            }
-        }
-        else
-        {
-            Console.WriteLine($"Le fichier {filePath} n'existe pas.");
         }
     }
 }
@@ -359,4 +280,110 @@ public static class Challenge // Contient le test des challenges
     private static int Yams(Yams.Dé[] dés) => dés.Any(dé => dé.Val != dés[0].Val) ? 0 : 50;
 
     private static int Chance(Yams.Dé[] dés) => dés.Sum(dé => dé.Val);
+}
+
+public static class Json
+{
+    public static void GenererJson(string datePartie, string codePartie)
+    {
+        const string filePath = "yams_results.json";
+
+        var jsonContent = $$"""
+                            {
+                                "parameters": {
+                                    "code": "{{codePartie}}",
+                                    "date": "{{datePartie}}"
+                                },
+                                "players": [],
+                                "rounds": [],
+                                "final_result": []
+                            }
+                            """;
+        File.WriteAllText(filePath, jsonContent);
+    }
+
+    // Ajoute les joueurs au fichier JSON
+    public static void EcritureJoueurs(int idJoueur1, string pseudo1, int idJoueur2, string pseudo2)
+    {
+        const string filePath = "yams_results.json";
+
+        if (File.Exists(filePath))
+        {
+            var existingContent = File.ReadAllText(filePath);
+
+            var playersContent = $$"""
+                                   
+                                       "players": [
+                                           {
+                                               "id": {{idJoueur1}},
+                                               "pseudo": "{{pseudo1}}"
+                                           },
+                                           {
+                                               "id": {{idJoueur2}},
+                                               "pseudo": "{{pseudo2}}"
+                                           }
+                                       ]
+                                   """;
+
+            existingContent = existingContent.Replace("""
+                                                      "players": []
+                                                      """, playersContent);
+            File.WriteAllText(filePath, existingContent);
+        }
+        else
+        {
+            Console.WriteLine($"Le fichier {filePath} n'existe pas.");
+        }
+    }
+
+    // Ajoute les résultats des deux joueurs pour un round
+    public static void EcritureTour(int roundId, int idJoueur1, int[] des1, string challenge1, int score1,
+        int idJoueur2, int[] des2, string challenge2, int score2)
+    {
+        const string filePath = "yams_results.json";
+
+        if (File.Exists(filePath))
+        {
+            var existingContent = File.ReadAllText(filePath);
+
+            // Trouver l'endroit où insérer le nouveau round
+            var roundsIndex = existingContent.LastIndexOf("""
+                                                          "rounds": [
+                                                          """, StringComparison.Ordinal);
+            if (roundsIndex == -1) return;
+            var closingBracketIndex = existingContent.IndexOf(']', roundsIndex);
+
+            var newRound = $$"""
+                             
+                                     {
+                                         "id": {{roundId}},
+                                         "results": [
+                                             {
+                                                 "id_player": {{idJoueur1}},
+                                                 "dice": [{{string.Join(", ", des1)}}],
+                                                 "challenge": "{{challenge1}}",
+                                                 "score": {{score1}}
+                                             },
+                                             {
+                                                 "id_player": {{idJoueur2}},
+                                                 "dice": [{{string.Join(", ", des2)}}],
+                                                 "challenge": "{{challenge2}}",
+                                                 "score": {{score2}}
+                                             }
+                                         ]
+                                     }
+                             """;
+
+            var updatedContent = existingContent.Substring(roundsIndex, closingBracketIndex - roundsIndex + 1).Trim() == """
+                                                                                                                         "rounds": []
+                                                                                                                         """ ? existingContent.Replace("""
+                                                                                                                                                       "rounds": []
+                                                                                                                                                       """, $"""
+                                                                                                                                                             "rounds": [{newRound}]
+                                                                                                                                                             """) : existingContent.Insert(closingBracketIndex, "," + newRound);
+
+            File.WriteAllText(filePath, updatedContent);
+        }
+        else Console.WriteLine($"Le fichier {filePath} n'existe pas.");
+    }
 }
