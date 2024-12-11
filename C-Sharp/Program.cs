@@ -1,4 +1,6 @@
-﻿namespace C_Sharp;
+﻿using Microsoft.VisualBasic;
+
+namespace C_Sharp;
 
 public class Yams
 {
@@ -173,6 +175,56 @@ public class Yams
             get => _garder;
             set => _garder = value;
         }
+    }
+
+
+    /*public static void GenererJson(var date,){
+
+    }*/
+    public static void EcritureTour(int idJoueur, int[] LesDes,string Nomchallenge,int scoreChallenge){
+        string filePath = "yams_results.json";
+
+        //Construire la nouvelle entree en texte brut pour les tour de joueur
+        string newEntry = $@"
+        {{
+            ""id_player"": {idJoueur},
+            ""dice"": [{string.Join(", ", LesDes)}],
+            ""challenge"": ""{Nomchallenge}"",
+            ""score"": {scoreChallenge}
+        }}";
+
+        //Verifier si le fichier existe
+        if (File.Exists(filePath))
+        {
+            // Charger le contenu existant
+            string existingContent = File.ReadAllText(filePath);
+
+            // Retirer le dernier crochet fermant du tableau pour insérer la nouvelle entrée
+            int lastBracketIndex = existingContent.LastIndexOf(']');
+            if (lastBracketIndex != -1)
+            {
+                string updatedContent = existingContent.Substring(0, lastBracketIndex) +
+                    "," + // Ajouter une virgule entre les entrées
+                    newEntry +
+                    "\n    ]\n}";
+
+                File.WriteAllText(filePath, updatedContent);
+            }
+        }
+        else
+        {
+            // Créer un nouveau fichier avec une structure JSON
+            string initialContent = $@"
+            {{
+                ""id"": 1,
+                ""results"": [
+                    {newEntry}
+                ]
+            }}";
+            File.WriteAllText(filePath, initialContent);
+        }
+
+        Console.WriteLine("Résultats mis à jour avec succès !");
     }
 }
 
