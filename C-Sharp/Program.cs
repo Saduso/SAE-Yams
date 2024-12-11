@@ -178,53 +178,105 @@ public class Yams
     }
 
 
-    /*public static void GenererJson(var date,){
-
-    }*/
-    public static void EcritureTour(int idJoueur, int[] LesDes,string Nomchallenge,int scoreChallenge){
+    public static void GenererJson(string datePartie, string codePartie)
+    {
         string filePath = "yams_results.json";
 
-        //Construire la nouvelle entree en texte brut pour les tour de joueur
-        string newEntry = $@"
-        {{
-            ""id_player"": {idJoueur},
-            ""dice"": [{string.Join(", ", LesDes)}],
-            ""challenge"": ""{Nomchallenge}"",
-            ""score"": {scoreChallenge}
-        }}";
+        string jsonContent = $@"{{
+    ""parameters"": {{
+        ""code"": ""{codePartie}"",
+        ""date"": ""{datePartie}""
+    }},
+    ""players"": [],
+    ""rounds"": [],
+    ""final_result"": []
+}}";
 
-        //Verifier si le fichier existe
+        File.WriteAllText(filePath, jsonContent);
+    }
+
+    // Ajoute les joueurs au fichier JSON
+    public static void EcritureJoueurs(int idJoueur1, string pseudo1, int idJoueur2, string pseudo2)
+    {
+        string filePath = "yams_results.json";
+
         if (File.Exists(filePath))
         {
-            // Charger le contenu existant
             string existingContent = File.ReadAllText(filePath);
 
-            // Retirer le dernier crochet fermant du tableau pour insérer la nouvelle entrée
-            int lastBracketIndex = existingContent.LastIndexOf(']');
-            if (lastBracketIndex != -1)
+            string playersContent = $@"
+    ""players"": [
+        {{
+            ""id"": {idJoueur1},
+            ""pseudo"": ""{pseudo1}""
+        }},
+        {{
+            ""id"": {idJoueur2},
+            ""pseudo"": ""{pseudo2}""
+        }}
+    ],";
+
+            existingContent = existingContent.Replace(@"""players"": []", playersContent);
+            File.WriteAllText(filePath, existingContent);
+        }
+        else
+        {
+            Console.WriteLine($"Le fichier {filePath} n'existe pas.");
+        }
+    }
+
+    // Ajoute les résultats des deux joueurs pour un round
+    public static void EcritureTour(int roundId, int idJoueur1, int[] des1, string challenge1, int score1,
+        int idJoueur2, int[] des2, string challenge2, int score2)
+    {
+        string filePath = "yams_results.json";
+
+        if (File.Exists(filePath))
+        {
+            string existingContent = File.ReadAllText(filePath);
+
+            // Trouver l'endroit où insérer le nouveau round
+            int roundsIndex = existingContent.LastIndexOf(@"""rounds"": [");
+            if (roundsIndex != -1)
             {
-                string updatedContent = existingContent.Substring(0, lastBracketIndex) +
-                    "," + // Ajouter une virgule entre les entrées
-                    newEntry +
-                    "\n    ]\n}";
+                int closingBracketIndex = existingContent.IndexOf("]", roundsIndex);
+
+                string newRound = $@"
+        {{
+            ""id"": {roundId},
+            ""results"": [
+                {{
+                    ""id_player"": {idJoueur1},
+                    ""dice"": [{string.Join(", ", des1)}],
+                    ""challenge"": ""{challenge1}"",
+                    ""score"": {score1}
+                }},
+                {{
+                    ""id_player"": {idJoueur2},
+                    ""dice"": [{string.Join(", ", des2)}],
+                    ""challenge"": ""{challenge2}"",
+                    ""score"": {score2}
+                }}
+            ]
+        }}";
+
+                string updatedContent;
+                if (existingContent.Substring(roundsIndex, closingBracketIndex - roundsIndex + 1).Trim() == @"""rounds"": []")
+                {
+                    updatedContent = existingContent.Replace(@"""rounds"": []", $@"""rounds"": [{newRound}]");
+                }
+                else
+                {
+                    updatedContent = existingContent.Insert(closingBracketIndex, "," + newRound);
+                }
 
                 File.WriteAllText(filePath, updatedContent);
             }
         }
         else
         {
-            // Créer un nouveau fichier avec une structure JSON
-            string initialContent = $@"
-            {{
-                ""id"": 1,
-                ""results"": [
-                    {newEntry}
-                ]
-            }}";
-            File.WriteAllText(filePath, initialContent);
+            Console.WriteLine($"Le fichier {filePath} n'existe pas.");
         }
-
-        Console.WriteLine("Résultats mis à jour avec succès !");
     }
 }
 
