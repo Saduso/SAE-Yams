@@ -25,6 +25,7 @@ public class Yams
             joueurs[i] = new Joueur(c is null or "" ? $"Joueur {i+1}" : c, i+1);
         }
         Json.EcritureJoueurs(1, joueurs[0].Nom!, 2, joueurs[1].Nom!);
+
         for (var i = 0; i < 13; i++)
         {
             Console.WriteLine($"Tour #{i+1}");
@@ -36,7 +37,6 @@ public class Yams
                 tours[index] = tour.Value;
                 Console.Clear();
             }
-
             Json.EcritureTour(i, joueurs[0].Indice,tours[0].Value.Select(k => k.Val).ToArray(), tours[0].Key,
                 Challenge.Challenges[joueurs[0].Challenges.Keys.ToList().IndexOf(tours[0].Key)](tours[0].Value),
                 joueurs[1].Indice, tours[1].Value.Select(k => k.Val).ToArray(), tours[1].Key,
@@ -44,10 +44,7 @@ public class Yams
         }
 
         Console.WriteLine($"+-------------YAMS--------------+");
-        foreach (var joueur in joueurs)
-        {
-            Console.WriteLine($"|\t{joueur.Indice}] {joueur.Nom}: {joueur.Challenges.Sum(k => k.Value)}\t\t|");
-        }
+        foreach (var joueur in joueurs) Console.WriteLine($"|\t{joueur.Indice}] {joueur.Nom}: {joueur.Challenges.Sum(k => k.Value)}\t\t|");
 
         var meilleur = joueurs.OrderBy(k => k.Challenges.Sum(i => i.Value)).Last();
         Console.WriteLine($"|  ---------------------------  |");
@@ -74,12 +71,18 @@ public class Yams
             var res = "1";
             var truc = new string[5]; // Liste permet de comparer une chaîne de character potentiellement nombre à des nombre entre 1 et 5.
             for (var j = 0; j < 5; j++) truc[j] = j + 1 + "";
-            while (int.TryParse(res, out _) && truc[int.Parse(res!) - 1] == res) { // Tant que le dernier nombre est entre 1 et 5 (permet de garder plusieurs dés).
+            while (int.TryParse(res, out _) && truc[int.Parse(res) - 1] == res) { // Tant que le dernier nombre est entre 1 et 5 (permet de garder plusieurs dés).
                 res = Console.ReadLine();
                 if (!int.TryParse(res, out _)) continue;
-                if (truc[int.Parse(res!) - 1] != res) continue;
+                if (truc.Length < int.Parse(res))
+                {
+                    res = "a";
+                    continue;
+                }
+                if (truc[int.Parse(res) - 1] != res) continue;
                 des[int.Parse(res) - 1].Garder = !des[int.Parse(res) - 1].Garder;
                 Console.Write("\n" + (des[0].Garder ? "-" : 1) + "\t" + (des[1].Garder ? "-" : 2) + "\t" + (des[2].Garder ? "-" : 3) + "\t" + (des[3].Garder ? "-" : 4) + "\t" + (des[4].Garder ? "-" : 5) + "\n" + "INDICE POUR CONSERVER UN DÉ\n");
+                Console.WriteLine(res);
                 AfficherDes(des);
                 Console.WriteLine("rl) Relance les dés");
                 Console.Write("\nVotre choix : ");
@@ -169,13 +172,15 @@ public class Yams
         };
     }
 
-    public struct Dé(int val = 0) : IComparable<Dé>
+    public struct Dé(int val = 0) : IComparable<Dé>, IEqualityComparer<Dé>
     {
         // Structure d'un dé.
         private int _val = val;
         private bool _garder = false;
 
         public int CompareTo(Dé other) => _val.CompareTo(other._val); // Permet d'utiliser les fonctions built-in des Collections
+        public bool Equals(Dé x, Dé y) => x.Val == y.Val;
+        public int GetHashCode(Dé obj) => obj.Val.GetHashCode();  // Pour IEqualityComparer
 
         /*
          * Val:
@@ -246,6 +251,7 @@ public static class Challenge // Contient le test des challenges
     {
         var nDes = dés.ToArray();
         Array.Sort(nDes);
+        nDes = nDes.Distinct().ToArray();
         var mi = nDes[0];
         var ma = 3;
         var i = 0;
@@ -267,6 +273,7 @@ public static class Challenge // Contient le test des challenges
     {
         var nDes = dés.ToArray();
         Array.Sort(nDes);
+        nDes = nDes.Distinct().ToArray();
         var mi = nDes[0];
         var i = 0;
         foreach (var de in nDes)
@@ -352,6 +359,7 @@ public static class Json
                                                           """, StringComparison.Ordinal);
             if (roundsIndex == -1) return;
             var closingBracketIndex = existingContent.IndexOf(']', roundsIndex);
+            // if (roundId >= 12) closingBracketIndex+=2;
 
             var newRound = $$"""
                              
