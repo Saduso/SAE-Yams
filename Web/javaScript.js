@@ -5,8 +5,8 @@ const data = JSON.parse(`{
     "date": "2024-09-28"
   },
   "players": [
-    { "id": 1, "pseudo": "Frank" },
-    { "id": 2, "pseudo": "Zappa" }
+    { "id": 1, "pseudo": "Magi" },
+    { "id": 2, "pseudo": "Tare" }
   ],
   "rounds": [
     {
