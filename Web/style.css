@@ -78,3 +78,47 @@ footer>p{
     font-style: italic;
     color: silver;
 }
+
+.lien {
+    margin-top: 5px;
+    background-color: white;
+    border-radius: 2px;
+    color: black;
+}
+
+#resultats {
+    background-color: aliceblue;
+    width: 70%;
+    height: 80%;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 20px;
+    padding-left: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1a1a2e;
+    font-size: large;
+    font-style: italic;
+}
+
+.res {
+    border-bottom: 2px solid #1a1a2e;
+}
+
+#title {
+    align-self: center;
+    background-color: #283593;
+    color: bisque;
+    font-style: italic;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 2px dashed bisque;
+    font-size: 50px;
+}
+
+#win {
+    align-self: center;
+    margin-top:auto;
+}

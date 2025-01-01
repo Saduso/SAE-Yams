@@ -38,7 +38,7 @@ let indexActu = 0; // Index actuel pour naviguer
 
 // Fonction pour afficher l'action actuelle
 function displayAction(index) {
-    const roundIndex = Math.floor(index / 2); // Détermine le round
+    const roundIndex = Math.floor(index / 2); 
     const playerIndex = index % 2; // Détermine le joueur (0 pour le premier, 1 pour le second)
 
     const round = data.rounds[roundIndex];
@@ -53,7 +53,6 @@ function displayAction(index) {
   `;
 }
 
-// Gérer les clics sur les flèches
 gauche.addEventListener("click", () => {
     if (indexActu > 0) {
         indexActu--;
@@ -68,5 +67,4 @@ droite.addEventListener("click", () => {
     }
 });
 
-// Affichage initial
 displayAction(indexActu);
