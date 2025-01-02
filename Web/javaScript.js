@@ -68,3 +68,15 @@ droite.addEventListener("click", () => {
 });
 
 displayAction(indexActu);
+
+/////////////////////Rainbowwww///////////////////////
+
+const button = document.getElementById("change-bg");
+const video = document.getElementById("background-video");
+
+button.addEventListener("click", () => {
+  video.style.display = "block"; // Affiche la vidéo
+  document.body.style.background = "none"; // Désactive le fond couleur
+});
+///////////////////////////////////////////
+
