@@ -43,13 +43,15 @@ public class Yams
                 Challenge.Challenges[joueurs[1].Challenges.Keys.ToList().IndexOf(tours[1].Key)](tours[1].Value));
         }
 
-        Console.WriteLine($"+-------------YAMS--------------+");
-        foreach (var joueur in joueurs) Console.WriteLine($"|\t{joueur.Indice}] {joueur.Nom}: {joueur.Challenges.Sum(k => k.Value)}\t\t|");
-
+        Console.WriteLine($"+-----------------YAMS------------------+");
+        foreach (var joueur in joueurs) Console.WriteLine($"|\t{joueur.Indice}] {joueur.Nom}: {joueur.Challenges.Sum(k => k.Value)}\t\t\t|");
         var meilleur = joueurs.OrderBy(k => k.Challenges.Sum(i => i.Value)).Last();
-        Console.WriteLine($"|  ---------------------------  |");
-        Console.WriteLine($"|\tMeilleur: {meilleur.Nom} avec {meilleur.Challenges.Sum(i => i.Value)}\t|");
-        Console.WriteLine($"+-------------------------------+");
+        Console.WriteLine($"| ------------------------------------- |");
+        var extraTab = meilleur.Nom!.Length > 5 ? "" : "\t";
+        Console.WriteLine($"|\tMeilleur: {meilleur.Nom} avec {meilleur.Challenges.Sum(i => i.Value)}\t{extraTab}|");
+        Console.WriteLine($"+---------------------------------------+");
+        Json.FinalResult(joueurs[0].Indice, joueurs[0].Nom ?? "Joueur 0", joueurs[0].Challenges.Sum(k => k.Value) ?? 0,
+            joueurs[1].Indice, joueurs[1].Nom ?? "Joueur 1", joueurs[1].Challenges.Sum(k => k.Value) ?? 0);
     }
 
     private static KeyValuePair<string, Dé[]>? Tour(ref Joueur joueur)
@@ -264,21 +266,22 @@ public static class Challenge // Contient le test des challenges
         }
         return 0;
     }
-
     private static int Grande(Yams.Dé[] dés)
     {
-        var nDes = dés.ToArray();
-        Array.Sort(nDes);
-        nDes = nDes.Distinct().ToArray();
-        var mi = nDes[0];
-        var i = 0;
-        foreach (var de in nDes)
-            if (de.Val == mi.Val + 1)
+        var nDes = dés.Select(d => d.Val).Distinct().OrderBy(val => val).ToArray();
+        var suiteLength = 1;
+        for (var i = 1; i < nDes.Length; i++)
+        {
+            if (nDes[i] == nDes[i - 1] + 1)
             {
-                i++;
-                mi = de;
+                suiteLength++;
+                if (suiteLength >= 5)
+                    return 30;
             }
-        return i >= 4 ? 40 : 0;
+            else
+                suiteLength = 1;
+        }
+        return 0;
     }
     private static int Yams(Yams.Dé[] dés) => dés.Any(dé => dé.Val != dés[0].Val) ? 0 : 50;
 
@@ -349,45 +352,41 @@ public static class Json
         {
             var existingContent = File.ReadAllText(filePath);
 
-            // Trouver l'endroit où insérer le nouveau round
-            var roundsIndex = existingContent.LastIndexOf("""
-                                                          "rounds": [
-                                                          """, StringComparison.Ordinal);
+            var roundsIndex = existingContent.LastIndexOf("\"rounds\": [", StringComparison.Ordinal);
             if (roundsIndex == -1) return;
-            var closingBracketIndex = existingContent.IndexOf(']', roundsIndex);
-            // if (roundId >= 12) closingBracketIndex+=2;
+
+            var closingBracketIndex = existingContent.LastIndexOf("],", StringComparison.Ordinal);
+            if (closingBracketIndex == -1) return;
+            if (roundId > 0) closingBracketIndex-=2;
 
             var newRound = $$"""
-                             
+                             {
+                                 "id": {{roundId}},
+                                 "results": [
                                      {
-                                         "id": {{roundId}},
-                                         "results": [
-                                             {
-                                                 "id_player": {{idJoueur1}},
-                                                 "dice": [{{string.Join(", ", des1)}}],
-                                                 "challenge": "{{challenge1}}",
-                                                 "score": {{score1}}
-                                             },
-                                             {
-                                                 "id_player": {{idJoueur2}},
-                                                 "dice": [{{string.Join(", ", des2)}}],
-                                                 "challenge": "{{challenge2}}",
-                                                 "score": {{score2}}
-                                             }
-                                         ]
+                                         "id_player": {{idJoueur1}},
+                                         "dice": [{{string.Join(", ", des1)}}],
+                                         "challenge": "{{challenge1}}",
+                                         "score": {{score1}}
+                                     },
+                                     {
+                                         "id_player": {{idJoueur2}},
+                                         "dice": [{{string.Join(", ", des2)}}],
+                                         "challenge": "{{challenge2}}",
+                                         "score": {{score2}}
                                      }
+                                 ]
+                             }
                              """;
 
-            var updatedContent = existingContent.Substring(roundsIndex, closingBracketIndex - roundsIndex + 1).Trim() == """
-                                                                                                                         "rounds": []
-                                                                                                                         """ ? existingContent.Replace("""
-                                                                                                                                                       "rounds": []
-                                                                                                                                                       """, $"""
-                                                                                                                                                             "rounds": [{newRound}]
-                                                                                                                                                             """) : existingContent.Insert(closingBracketIndex, "," + newRound);
+            var updatedContent = existingContent.Substring(roundsIndex, closingBracketIndex - roundsIndex + 1).Trim() == "\"rounds\": []"
+                ? existingContent.Replace("\"rounds\": []", $"\"rounds\": [{newRound}]")
+                : existingContent.Insert(closingBracketIndex + 2, "," + newRound);
 
             File.WriteAllText(filePath, updatedContent);
         }
         else Console.WriteLine($"Le fichier {filePath} n'existe pas.");
     }
+
+    public static void FinalResult(int idJoueur1, string nomJoueur1, int scoreJoueur1, int idJoueur2, string nomJoueur2, int scoreJoueur2) {}
 }
