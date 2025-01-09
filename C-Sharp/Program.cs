@@ -249,26 +249,22 @@ public static class Challenge // Contient le test des challenges
     }
     private static int Petite(Yams.Dé[] dés)
     {
-        var nDes = dés.ToArray();
-        Array.Sort(nDes);
-        nDes = nDes.Distinct().ToArray();
-        var mi = nDes[0];
-        var ma = 3;
-        var i = 0;
-        var u = 0;
-        foreach (var de in nDes)
+        var nDes = dés.Select(d => d.Val).Distinct().OrderBy(val => val).ToArray();
+        var suiteLength = 1;
+        for (var i = 1; i < nDes.Length; i++)
         {
-            if (de.Val == mi.Val + 1)
+            if (nDes[i] == nDes[i - 1] + 1)
             {
-                i++;
-                mi = de;
-            } else if (de.Val == nDes[^1].Val - ma) {
-                u++;
-                ma--;
+                suiteLength++;
+                if (suiteLength >= 4)
+                    return 30;
             }
+            else
+                suiteLength = 1;
         }
-        return i >= 4 || u >= 4 ? 30 : 0;
+        return 0;
     }
+
     private static int Grande(Yams.Dé[] dés)
     {
         var nDes = dés.ToArray();
