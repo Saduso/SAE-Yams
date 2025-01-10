@@ -388,5 +388,36 @@ public static class Json
         else Console.WriteLine($"Le fichier {filePath} n'existe pas.");
     }
 
-    public static void FinalResult(int idJoueur1, string nomJoueur1, int scoreJoueur1, int idJoueur2, string nomJoueur2, int scoreJoueur2) {}
+    public static void FinalResult(int idJoueur1, string nomJoueur1, int scoreJoueur1, int idJoueur2, string nomJoueur2, int scoreJoueur2) {
+        const string filePath = "yams_results.json";
+
+        if (File.Exists(filePath))
+        {
+            var existingContent = File.ReadAllText(filePath);
+
+            var finalResultContent = $$"""
+            "final_result": [
+                {
+                    "id_player": {{idJoueur1}},
+                    "bonus": {{(scoreJoueur1 >= 63 ? 35 : 0)}},
+                    "score": {{scoreJoueur1 + (scoreJoueur1 >= 63 ? 35 : 0)}}
+                },
+                {
+                    "id_player": {{idJoueur2}},
+                    "bonus": {{(scoreJoueur2 >= 63 ? 35 : 0)}},
+                    "score": {{scoreJoueur2 + (scoreJoueur2 >= 63 ? 35 : 0)}}
+                }
+            ]
+            """;
+
+            // Remplace "final_result" vide 
+            existingContent = existingContent.Replace("\"final_result\": []", finalResultContent);
+
+            File.WriteAllText(filePath, existingContent);
+        }
+        else
+        {
+            Console.WriteLine($"Le fichier {filePath} n'existe pas.");
+        }
+    }
 }
