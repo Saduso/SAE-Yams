@@ -9,34 +9,45 @@
 </head>
 
 <body>
-    <section id=head>
+    <section id="head">
         <img class="yipee" src="./images/yipee.gif" alt="dice">
-         <h1 id="title">Résultats du Jeu</h1>
-        <img class="yipee" src="./images/yipee.gif" alt="dice">      
+        <h1 id="title">Résultats du Jeu</h1>
+        <img class="yipee" src="./images/yipee.gif" alt="dice">
+    </section>
+
+    <!-- Section pour entrer l'ID de la partie -->
+    <section class="test">
+        <label for="gameIdInput" id="entrerID">Entrez l'ID de la partie:</label>
+        <input type="text" id="gameIdInput" placeholder="Ex: 3d1rezyupl">
+        <button id="loadResultsBtn">Charger les Résultats</button>
     </section>
 
     <div id="resultats">
+        
         <section class="test">
-             <p class="res">vainqueur :   </p>
-             <p id="vainqueur">  </p>
+            <p class="res">Vainqueur : </p>
+            <p id="vainqueur"> </p>
         </section>
         <section class="test">
-             <p class="res">Meilleur Score :   </p>
-             <p id="score-final">  </p>
+            <p class="res">Meilleur Score : </p>
+            <p id="score-final"> </p>
         </section>
         <section class="test">
-             <p class="res">Joueurs :   </p>
-             <p id="joueurs"> </p>
+            <p class="res">Joueurs : </p>
+            <p id="joueurs"> </p>
         </section>
         <img src="./images/winner.gif" alt="win" width="30%" id="win">
     </div>
+
     <section class="lien">
         <a href="principal.html">Retour à la Partie</a>
     </section>
+
     <script src="accueil.js"></script>
 </body>
+
 <footer>
-    <p>one two three viva l'algerie</p>
+    <p>one two three viva l'Algérie</p>
     <img src="./images/dz.gif" alt="algeriaaaa" width="50" height="30">
 </footer>
 

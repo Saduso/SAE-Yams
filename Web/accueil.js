@@ -1,49 +1,62 @@
-const data = JSON.parse(`{
-  "parameters": {
-    "code": "groupe1-001",
-    "date": "2024-09-28"
-  },
-  "players": [
-    { "id": 1, "pseudo": "Magi" },
-    { "id": 2, "pseudo": "Tare" }
-  ],
-  "rounds": [
-    {
-      "id": 1,
-      "results": [
-        { "id_player": 1, "dice": [5, 5, 6, 5, 6], "challenge": "full", "score": 25 },
-        { "id_player": 2, "dice": [1, 2, 1, 2, 2], "challenge": "full", "score": 25 }
-      ]
-    },
-    {
-      "id": 2,
-      "results": [
-        { "id_player": 1, "dice": [4, 4, 4, 5, 1], "challenge": "nombre4", "score": 12 },
-        { "id_player": 2, "dice": [4, 6, 4, 5, 4], "challenge": "nombre4", "score": 12 }
-      ]
-    }
-  ],
-  "final_result": [
-    { "id_player": 1, "bonus": 0, "score": 175 },
-    { "id_player": 2, "bonus": 35, "score": 255 }
-  ]
-}`);
-
-// Sélection des éléments
+// Sélection des éléments HTML
 const vainqueurElem = document.getElementById("vainqueur");
 const scoreFinalElem = document.getElementById("score-final");
 const joueursElem = document.getElementById("joueurs");
+const loadResultsBtn = document.getElementById("loadResultsBtn");
+const gameIdInput = document.getElementById("gameIdInput");
 
-// Trouver le score : on compare les deux scores
-const winner = data.final_result.reduce((max, player) => player.score > max.score ? player : max, data.final_result[0]);
+// Fonction pour récupérer le résultat final de la partie
+function fetchFinalResult(gameId) {
+  return fetch(`http://yams.iutrs.unistra.fr:3000/api/games/${gameId}/final-result`)
+    .then(response => response.json())
+    .then(data => data)
+    .catch(error => {
+      console.error('Erreur lors de la récupération du résultat final:', error);
+    });
+}
 
-// qui est le vainqueur?
-const winnerPlayer = data.players.find(player => player.id === winner.id_player);
+// Fonction pour récupérer les joueurs d'une partie
+function fetchPlayers(gameId) {
+  return fetch(`http://yams.iutrs.unistra.fr:3000/api/games/${gameId}/players`)
+    .then(response => response.json())
+    .then(data => data)
+    .catch(error => {
+      console.error('Erreur lors de la récupération des joueurs:', error);
+    });
+}
 
-// Liste des joueurs
-const allPlayers = data.players.map(player => `${player.pseudo} (ID: ${player.id})`).join(", ");
+// Fonction pour afficher les résultats
+function displayResults(gameId) {
+  // On récupère les données nécessaires
+  Promise.all([fetchPlayers(gameId), fetchFinalResult(gameId)])
+    .then(results => {
+      const [players, finalResult] = results;
 
-// afficher sur la page
-vainqueurElem.textContent = `  ${winnerPlayer.pseudo}`;
-scoreFinalElem.textContent = `  ${winner.score}`;
-joueursElem.textContent = `  ${allPlayers}`;
+      // Trouver le joueur avec le score maximum
+      const winner = finalResult.reduce((max, player) => player.score > max.score ? player : max, finalResult[0]);
+
+      // Trouver le pseudo du vainqueur
+      const winnerPlayer = players.find(player => player.id === winner.id_player);
+
+      // Créer la liste des joueurs
+      const allPlayers = players.map(player => `${player.pseudo} (ID: ${player.id})`).join(", ");
+
+      // Afficher les données dans les éléments HTML
+      vainqueurElem.textContent = winnerPlayer.pseudo;
+      scoreFinalElem.textContent = winner.score;
+      joueursElem.textContent = allPlayers;
+    })
+    .catch(error => {
+      console.error('Erreur lors de l\'affichage des résultats:', error);
+    });
+}
+
+// Fonction pour charger les résultats lorsque le bouton est cliqué
+loadResultsBtn.addEventListener("click", () => {
+  const gameId = gameIdInput.value.trim(); // Récupère l'ID entré par l'utilisateur
+  if (gameId) {
+    displayResults(gameId);  // Appelle la fonction pour afficher les résultats
+  } else {
+    alert("Veuillez entrer un ID de partie valide.");
+  }
+});
