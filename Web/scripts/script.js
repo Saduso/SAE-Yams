@@ -66,7 +66,7 @@ function displayAction(index) {
     <p>Dice: ${result.dice.join(", ")}</p>
     <p>Challenge: ${result.challenge}</p>
     <p>Score: ${result.score}</p>
-  `;
+  `; //Affichage dans la page web
 }
 
 // Fonction pour charger toutes les données
