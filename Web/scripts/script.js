@@ -11,7 +11,6 @@ let indexActu = 0; // Index actuel pour naviguer
 function fetchParameters() {
   return fetch(`http://yams.iutrs.unistra.fr:3000/api/games/${gameId}/parameters`)
     .then(response => response.json())
-    .then(data => data)
     .catch(error => {
       console.error('Erreur lors de la récupération des paramètres:', error);
     });
@@ -21,7 +20,6 @@ function fetchParameters() {
 function fetchPlayers() {
   return fetch(`http://yams.iutrs.unistra.fr:3000/api/games/${gameId}/players`)
     .then(response => response.json())
-    .then(data => data)
     .catch(error => {
       console.error('Erreur lors de la récupération des joueurs:', error);
     });
@@ -31,7 +29,6 @@ function fetchPlayers() {
 function fetchRound(roundIndex) {
   return fetch(`http://yams.iutrs.unistra.fr:3000/api/games/${gameId}/rounds/${roundIndex}`)
     .then(response => response.json())
-    .then(data => data)
     .catch(error => {
       console.error(`Erreur lors de la récupération du tour ${roundIndex}:`, error);
     });
@@ -41,7 +38,6 @@ function fetchRound(roundIndex) {
 function fetchFinalResult() {
   return fetch(`http://yams.iutrs.unistra.fr:3000/api/games/${gameId}/final-result`)
     .then(response => response.json())
-    .then(data => data)
     .catch(error => {
       console.error('Erreur lors de la récupération du résultat final:', error);
     });
@@ -54,7 +50,7 @@ function displayAction(index) {
     return;
   }
 
-  const roundIndex = Math.floor(index / 2);
+  const roundIndex = Math.floor(index / 2); //Determiner les tours
   const playerIndex = index % 2; // Détermine le joueur (0 pour le premier, 1 pour le second)
 
   const round = data.rounds[roundIndex];
@@ -62,8 +58,8 @@ function displayAction(index) {
   const result = round.results.find(r => r.id_player === player.id);
 
   display.innerHTML = `
-    <h2>Round ${round.id} - Player: ${player.pseudo}</h2>
-    <p>Dice: ${result.dice.join(", ")}</p>
+    <h2>Round ${round.id} - joueur: ${player.pseudo}</h2>
+    <p>Dés: ${result.dice.join(", ")}</p>
     <p>Challenge: ${result.challenge}</p>
     <p>Score: ${result.score}</p>
   `; //Affichage dans la page web
@@ -86,7 +82,7 @@ function loadGameData() {
       // Les résultats des fetchs seront stockés dans un tableau
       const [parameters, players, finalResult] = results;
 
-      // Stocke toutes les données dans une structure (par exemple un objet global)
+      // Stocke toutes les données dans une structure
       data = {
         parameters,
         players,
